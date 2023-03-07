@@ -112,7 +112,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         data_dirname = None
         while True:
             if self._printer.get_state_id() in ['PRINTING', 'PAUSING', 'RESUMING', ]:
-                if not self._settings.get(["enabled"]):
+                if not self.should_collect():
                     continue
 
                 if data_dirname == None:
@@ -189,6 +189,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         with open(filename, 'rb') as f:
             blob = bucket.blob(f'{self._settings.get(["pilot_email"])}/{basename}')
             blob.upload_from_file(f, timeout=None)
+
+    def should_collect(self):
+        return self._settings.get(["terms_accepted"]) and self._settings.get(["enabled"]) and self._settings.get(["pilot_email"]) is not None
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
