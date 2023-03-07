@@ -45,6 +45,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             'snapshot_url': 'http://localhost:8080/?action=snapshot',
             'enabled': False,
             'pilot_email': None,
+            'terms_accepted': False,
         }
 
     ##~~ AssetPlugin mixin
@@ -172,8 +173,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         (stdoutdata, stderrdata) = proc.communicate()
         msg = 'RETURN:\n{}\nSTDOUT:\n{}\nSTDERR:\n{}\n'.format(returncode, stdoutdata, stderrdata)
         _logger.debug(msg)
-        shutil.rmtree(data_dirname, ignore_errors=True)
         _logger.info('Deleting ' + basename)
+        shutil.rmtree(data_dirname, ignore_errors=True)
         _logger.info('Uploading ' + tarball_filename)
         self.upload_to_data_bucket(tarball_filename)
         _logger.info('Done')

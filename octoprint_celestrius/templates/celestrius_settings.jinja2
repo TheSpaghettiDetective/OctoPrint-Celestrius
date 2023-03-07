@@ -1,4 +1,26 @@
 <div>
+  <h3>Privacy Notice and Terms</h3>
+  <p>This plugin collect training data for <a href="https://obico.io/blog/celestrius-limited-pilot/">project Celestrius (limited pilot)</a> by <a href="https://www.obico.io/team.html">the Obico Team</a>.</p>
+  <p>Please read the following carefully to make sure you understand the privacy and terms of this limited pilot program:</p>
+  <ul>
+    <li>When <b>ALL</b> of the following conditions are met, the plugin will take snapshots from the camera you configured below, and send them to a secure server hosted by the Obico Team.
+      <ul>
+        <li>You have accepted the terms by checking the box below;</li>
+        <li>The data collection is enabled (Celestrius icon is green on the navigation bar). By default the data collection is disabled. So don't forget to toggle it on when you are doing the test prints for the pilot program;</li>
+        <li>Your printer is printing.</li>
+      </ul>
+    </li>
+    <li>The Obico Team won't access your data until 7 days after they are uploaded. This 7-day period is the grace period for you to request data withdrawal in case you accidentally send the data for the prints you don't intend to.</li>
+    <li>You will find a list of all data that have been sent to the server at the bottom of this page. Please check the list periodically. If you find any data on the list that you don't intend to send to the Obico Team, please <a href="mailto:support@obico.io">email  us</a> to request data withdrawal.</li>
+    <li>7 days after your data is uploaded to the server, the Obico Team will access them and use them for project Celestrius.</li>
+  </ul>
+  <div class="control-group">
+      <div class="controls">
+          <label class="checkbox">
+              <input type="checkbox" data-bind="checked: settingsViewModel.settings.plugins.celestrius.terms_accepted" id="settings-terms_accepted"> I understand the privacy policy and accept the terms for participating in the pilot program.
+          </label>
+      </div>
+  </div>
   <form class="form-horizontal" onsubmit="return false;">
     <h3>Settings</h3>
 
@@ -6,6 +28,7 @@
         <label class="control-label" for="pilot-email">Email</label>
         <div class="controls">
             <input type="text" class="input-block-level" data-bind="value: settingsViewModel.settings.plugins.celestrius.pilot_email" id="pilot-email">
+            <span class="help-inline">The email you signed up for the limited pilot with. Please make sure the email is correct as this will be used to communicate with you throughout the pilot program.</span>
         </div>
     </div>
 
@@ -13,6 +36,7 @@
         <label class="control-label" for="snapshot-url">Snapshot URL</label>
         <div class="controls">
             <input type="text" class="input-block-level" data-bind="value: settingsViewModel.settings.plugins.celestrius.snapshot_url" id="snapshot-url">
+            <span class="help-inline">The Snapshot URL for <b>the nozzle camera you set up for project Celestrius</b>. Please note if you have multiple cameras set up, this is NOT the main camera you configured in OctoPrint.</span>
         </div>
     </div>
   </form>
