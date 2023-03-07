@@ -37,6 +37,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     def get_settings_defaults(self):
         return {
             'snapshot_url': 'http://localhost:8080/?action=snapshot',
+            'enabled': False,
         }
 
     ##~~ AssetPlugin mixin
@@ -49,6 +50,14 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             "css": ["css/celestrius.css"],
             "less": ["less/celestrius.less"]
         }
+
+	##~~ TemplatePlugin mixin
+
+    # def get_template_configs(self):
+    #     return [
+    #         dict(type="navbar"),
+    #         dict(type="settings", custom_bindings=True)
+    #     ]
 
     ##########
     ### Wizard

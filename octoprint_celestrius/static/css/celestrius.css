@@ -1,1 +1,3 @@
-/* TODO: Have your plugin's CSS files generated to here. */
+#navbar_plugin_celestrius > a.enabled {
+	color: #0f1095 !important;
+}
