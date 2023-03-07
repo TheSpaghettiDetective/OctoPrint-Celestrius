@@ -6,7 +6,7 @@ body:
       value: >-
         **Thank you for wanting to report a bug in OctoPrint-Celestrius!**
 
-          * First, be sure you are running the [latest version of the OctoPrint-Celestrius plugin](https://github.com/kennethjiang/OctoPrint-Celestrius/releases).
+          * First, be sure you are running the [latest version of the OctoPrint-Celestrius plugin](https://github.com/TheSpaghettiDetective/OctoPrint-Celestrius/releases).
           * You will also need to [enable debugging on the plugin](https://docs.octoprint.org/en/master/configuration/logging_yaml.html).
             * This may be done through the *Settings* > *OctoPrint* > *Logging* > *Logging Levels* section.
             * Select the "octoprint.plugins.celestrius" name, and make sure Level is "DEBUG".

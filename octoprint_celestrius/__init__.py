@@ -13,14 +13,15 @@ import octoprint.plugin
 
 class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
-    octoprint.plugin.TemplatePlugin
+    octoprint.plugin.TemplatePlugin,
+    octoprint.plugin.WizardPlugin
 ):
 
     ##~~ SettingsPlugin mixin
 
     def get_settings_defaults(self):
         return {
-            # put your plugin's default settings here
+            'snapshot_url': 'http://localhost:8080/?action=snapshot',
         }
 
     ##~~ AssetPlugin mixin
@@ -33,6 +34,16 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             "css": ["css/celestrius.css"],
             "less": ["less/celestrius.less"]
         }
+
+    ##########
+    ### Wizard
+    ##########
+
+    def is_wizard_required(self):
+        return True
+
+    def get_wizard_version(self):
+        return 1
 
     ##~~ Softwareupdate hook
 
@@ -47,12 +58,12 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
                 # version check: github repository
                 "type": "github_release",
-                "user": "kennethjiang",
+                "user": "TheSpaghettiDetective",
                 "repo": "OctoPrint-Celestrius",
                 "current": self._plugin_version,
 
                 # update method: pip
-                "pip": "https://github.com/kennethjiang/OctoPrint-Celestrius/archive/{target_version}.zip",
+                "pip": "https://github.com/TheSpaghettiDetective/OctoPrint-Celestrius/archive/{target_version}.zip",
             }
         }
 

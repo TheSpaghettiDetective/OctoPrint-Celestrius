@@ -5,15 +5,15 @@ id: celestrius
 title: OctoPrint-Celestrius
 description: Data collection plugin for project Celestrius
 authors:
-- Celestrius
+  - Celestrius
 license: AGPLv3
 
 # TODO
 date: today's date in format YYYY-MM-DD, e.g. 2015-04-21
 
-homepage: https://github.com/kennethjiang/OctoPrint-Celestrius
-source: https://github.com/kennethjiang/OctoPrint-Celestrius
-archive: https://github.com/kennethjiang/OctoPrint-Celestrius/archive/master.zip
+homepage: https://github.com/TheSpaghettiDetective/OctoPrint-Celestrius
+source: https://github.com/TheSpaghettiDetective/OctoPrint-Celestrius
+archive: https://github.com/TheSpaghettiDetective/OctoPrint-Celestrius/archive/master.zip
 
 # TODO
 # Set this to true if your plugin uses the dependency_links setup parameter to include
@@ -22,22 +22,22 @@ archive: https://github.com/kennethjiang/OctoPrint-Celestrius/archive/master.zip
 
 # TODO
 tags:
-- a list
-- of tags
-- that apply
-- to your plugin
-- (take a look at the existing plugins for what makes sense here)
+  - a list
+  - of tags
+  - that apply
+  - to your plugin
+  - (take a look at the existing plugins for what makes sense here)
 
 # TODO
 # When registering a plugin on plugins.octoprint.org, all screenshots should be uploaded not linked from external sites.
 screenshots:
-- url: url of a screenshot, /assets/img/...
-  alt: alt-text of a screenshot
-  caption: caption of a screenshot
-- url: url of another screenshot, /assets/img/...
-  alt: alt-text of another screenshot
-  caption: caption of another screenshot
-- ...
+  - url: url of a screenshot, /assets/img/...
+    alt: alt-text of a screenshot
+    caption: caption of a screenshot
+  - url: url of another screenshot, /assets/img/...
+    alt: alt-text of another screenshot
+    caption: caption of another screenshot
+  - ...
 
 # TODO
 featuredimage: url of a featured image for your plugin, /assets/img/...
@@ -48,7 +48,6 @@ featuredimage: url of a featured image for your plugin, /assets/img/...
 # "compatibility" block if this is not the case.
 
 compatibility:
-
   # List of compatible versions
   #
   # A single version number will be interpretated as a minimum version requirement,
@@ -60,7 +59,7 @@ compatibility:
   # OctoPrint versions being supported.
 
   octoprint:
-  - 1.4.0
+    - 1.4.0
 
   # List of compatible operating systems
   #
@@ -80,21 +79,20 @@ compatibility:
   # operating systems being supported.
 
   os:
-  - linux
-  - windows
-  - macos
-  - freebsd
+    - linux
+    - windows
+    - macos
+    - freebsd
 
   # Compatible Python version
   #
   # It is recommended to only support Python 3 for new plugins, in which case this should be ">=3,<4"
-  # 
+  #
   # Plugins that wish to support both Python 2 and 3 should set it to ">=2.7,<4".
   #
   # Plugins that only support Python 2 will not be accepted into the plugin repository.
 
   python: ">=3,<4"
-
 ---
 
 **TODO**: Longer description of your plugin, configuration examples etc. This part will be visible on the page at

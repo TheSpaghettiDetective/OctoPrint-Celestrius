@@ -4,13 +4,13 @@
  * Author: Celestrius
  * License: AGPLv3
  */
-$(function() {
+$(function () {
     function CelestriusViewModel(parameters) {
         var self = this;
 
         // assign the injected parameters, e.g.:
-        // self.loginStateViewModel = parameters[0];
-        // self.settingsViewModel = parameters[1];
+        self.settingsViewModel = parameters[0];
+        self.wizardViewModel = parameters[1];
 
         // TODO: Implement your plugin's view model here.
     }
@@ -22,8 +22,8 @@ $(function() {
     OCTOPRINT_VIEWMODELS.push({
         construct: CelestriusViewModel,
         // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
-        dependencies: [ /* "loginStateViewModel", "settingsViewModel" */ ],
+        dependencies: ["settingsViewModel", "wizardViewModel"],
         // Elements to bind to, e.g. #settings_plugin_celestrius, #tab_plugin_celestrius, ...
-        elements: [ /* ... */ ]
+        elements: ["#settings_plugin_celestrius"],
     });
 });
