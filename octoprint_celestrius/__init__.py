@@ -10,6 +10,8 @@ import time
 import re
 import psutil
 import shutil
+from google.cloud import storage
+
 
 ### (Don't forget to remove me)
 # This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
@@ -136,7 +138,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             else:
                 if data_dirname is not None:
                     data_dirname_to_compress = data_dirname
-                    compress_thread = Thread(target=self.compress_data_dir, args=(data_dirname_to_compress,))
+                    compress_thread = Thread(target=self.compress_and_upload, args=(data_dirname_to_compress,))
                     compress_thread.daemon = True
                     compress_thread.start()
                 data_dirname = None
@@ -159,11 +161,12 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                 with self._mutex:
                     self.current_flow_rate = float(match.group(1)) / 100.0
 
-    def compress_data_dir(self, data_dirname):
+    def compress_and_upload(self, data_dirname):
         parent_dir_name = os.path.dirname((data_dirname))
         basename = os.path.basename((data_dirname))
+        tarball_filename = data_dirname + '.tgz'
         _logger.info('Compressing ' + basename)
-        proc = psutil.Popen(['tar', '-C', parent_dir_name, '-zcf', data_dirname + '.tgz', basename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = psutil.Popen(['tar', '-C', parent_dir_name, '-zcf', tarball_filename, basename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         proc.nice(10)
         returncode = proc.wait()
         (stdoutdata, stderrdata) = proc.communicate()
@@ -171,6 +174,18 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         _logger.debug(msg)
         shutil.rmtree(data_dirname, ignore_errors=True)
         _logger.info('Deleting ' + basename)
+        _logger.info('Uploading ' + tarball_filename)
+        self.upload_to_data_bucket(tarball_filename)
+
+    def upload_to_data_bucket(self, filename):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'celestrius-data-collector.json')
+
+        client = storage.Client()
+        bucket = client.bucket('celestrius-data-collection')
+        basename = os.path.basename((filename))
+        with open(filename, 'rb') as f:
+            blob = bucket.blob(f'asdf@asdf.com/{basename}')
+            blob.upload_from_file(f)
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py

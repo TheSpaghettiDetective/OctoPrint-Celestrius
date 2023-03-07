@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "tsdtechnology",
+  "private_key_id": "1b474e7b962e90c7bb81b50439dbd55c108b2a43",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5TSQOZEwDKhQO\ngU8nlnuvZ9s/VPBNiwOF8BweEx60etCsYzwP8f9axy2gRQvYGZDde2PjD4U3RKVw\n2GemopqUBoCAACSKNN3qIKCkdofmOSeOb5Zk+2zHUTgTgZTm7YcwNER9gGvz/rTW\nSgQrhrVlh+f2a60n8vk0rRM4h46pqzN6rg/uH4DvRvja/jgiwQw/CyAZnMOsPfQF\ne7TlBAZ5p081IWdoHlcnJLyclSSWgeiYznt8cnKBvoeIWVMmPxn7HZ0tMFO6JzvC\naNVz/6+o0ZokzmlAyZO5/HaNr3oMlvUZvF11ZQdyXoSPpigco1kDp4iiSQ1m5tOF\nHlsaB75lAgMBAAECggEAKdyNADlVWMOpS0uYK7vZzlsak1infwUgMyJ23653GdPD\nD6bNe1ay1vm3S4U9s0C3Uuncu3+Wm1FFRNSGugTzAezkG8asepKN7aYYVH84nWCd\nGJcJ9V89iFvHXNTB5FeV2mR8cpPQD4ujo+ONxJ2GnlzRIQDbWfKQrP9Kn9Mz/g09\nur0mT513WUfduOYR42u26ANCnaIaxTWiEurXE/Zfd+gTSQDLGrAKbsPhgfo8kSIy\npeatUjKZcV6Rdm1ECoD0PTnXSF5khmvamWX11gq9eUxFk6OoG2s2VwoslQjaqqzf\nygLM6ozi7jENqwFaY/jQgAZE7UZOtZVBDstWquWBwwKBgQDyHSutP/ucdUXxLpeQ\nCiyeaWzlLn/Lg3hiWsdm5exiwhVstYXN4rxTiECzhLWYBlipcTBF5Stu+kzgS6dp\nNHhB7RIDQc5nOmQ686vfnOZnXONTRqfLUSuiyz7Dxm2ChKD9o5dzPW63cpeBmLzl\nV8uK/jW5w6GMzvzzZV8xcncurwKBgQDD7dIulj+Bsr2EiO6wBieTzSAZg6h3E9WM\nrXJHkVJ0o0lzMh4OtdIb2TmIvt0/pZ1QwVHQfk1W/h6iUWNhF1dbW89DvPZOqZ3K\n99QvwYbupI0Gx9vfdV1u3cUP6Xo4I09YAc9GROYuMbJIQbPVdYR/chiCncHy8Jld\n42l6fD1JKwKBgQCPGk7GiBrfzzEX7MIIkPruZsHGdEV0tLBi8eUKHLwrYyvmpSQB\nHRLTDKWxda8fvCCLhitSJLIXVjo6GH1K4Yhy7vzGkA6/VPQJJB1ifgpw7aYvgoOK\n2N9ByX+/l3kCvAGr6RWLN7RJGaITJ4P+ynW0Iaz/r3G9GFrKQhCR2WY4YQKBgQCP\nBzOiMqiVo8fZ0qR792I48Ut3lLcMhnwkQBHm0N1irDjYUUPD9VM2ZTMs8jhNWDcp\nVpbFHw6SbNwsHkHwBLwOw0zg5DbiYcwA+T36xsobuCADTS7jR6g3YMmUvhoslQo8\n8sU/RNjL7Bd7zArdzvY0mzPtVgDZum4bLgI4Gi4bFQKBgEhj5bCLtR0hupJZ6k+c\nialg8m92yKhWfd0Lp61/yjrwQmWaZRrYjYfhO6NamtVMmfk7xJ8CjpsQm51w3P8r\n6CEqHMY+s2In9wW91pRYr+jCSI76fILLJw3oF4IgaCNIf3UW45YEjfIrd9vEiUGb\nCAMQXO1w0yijs9A+zRwruELj\n-----END PRIVATE KEY-----\n",
+  "client_email": "celestrius-data-collector@tsdtechnology.iam.gserviceaccount.com",
+  "client_id": "100907223855109679981",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/celestrius-data-collector%40tsdtechnology.iam.gserviceaccount.com"
+}
