@@ -1,10 +1,12 @@
 # coding=utf-8
 from __future__ import absolute_import
-import threading
+from threading import Thread, RLock
 from datetime import datetime
 import os
 import requests
 import time
+import re
+
 
 ### (Don't forget to remove me)
 # This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
@@ -16,12 +18,19 @@ import time
 
 import octoprint.plugin
 
+
 class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.StartupPlugin,
     octoprint.plugin.TemplatePlugin,
     octoprint.plugin.WizardPlugin
 ):
+
+    def __init__(self):
+        self._mutex = RLock()
+        self.current_flow_rate = 1.0
+        self.current_z_offset = None
+
 
     ##~~ SettingsPlugin mixin
 
@@ -59,7 +68,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         # for details.
         return {
             "celestrius": {
-                "displayName": "Celestrius Plugin",
+                "displayName": "Celestrius Data Collector",
                 "displayVersion": self._plugin_version,
 
                 # version check: github repository
@@ -75,14 +84,15 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
 
     def on_after_startup(self):
-
-        main_thread = threading.Thread(target=self.main_loop)
+        main_thread = Thread(target=self.main_loop)
         main_thread.daemon = True
         main_thread.start()
 
     # Private methods
 
     def main_loop(self):
+        current_flow_rate = 1.0
+
         last_collect = 0.0
         data_dirname = None
         while True:
@@ -93,15 +103,19 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         continue
 
                     print_id = str(int(datetime.now().timestamp()))
-                    data_dirname = os.path.join(os.path.expanduser('~'), f'{filename}.{print_id}')
-                    os.mkdir(data_dirname)
+                    data_dirname = os.path.join(self._data_folder, f'{filename}.{print_id}')
+                    os.makedirs(data_dirname, exist_ok=True)
 
                 ts = datetime.now().timestamp()
-                if ts - last_collect >= 1.0:
+                if ts - last_collect >= 0.4:
                     last_collect = ts
                     jpg = self.capture_jpeg()
                     with open(f'{data_dirname}/{ts}.jpg', 'wb') as f:
                         f.write(jpg)
+                    with open(f'{data_dirname}/{ts}.labels', 'w') as f:
+                        with self._mutex:
+                            f.write(f'flow_rate:{self.current_flow_rate}')
+
             else:
                 data_dirname = None
                 continue
@@ -116,10 +130,19 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             jpg = r.content
             return jpg
 
+    def sent_gcode(self, comm_instance, phase, cmd, cmd_type, gcode, subcode=None, tags=None, *args, **kwargs):
+        if gcode == 'M221':
+            match = re.search(r's(\d+)', cmd, re.IGNORECASE)
+
+            if match:
+                with self._mutex:
+                    self.current_flow_rate = float(match.group(1)) / 100.0
+
+
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
 # ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that
 # can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
-__plugin_name__ = "Celestrius Plugin"
+__plugin_name__ = "Celestrius Data Collector"
 
 
 # Set the Python version your plugin is compatible with below. Recommended is Python 3 only for all new plugins.
@@ -133,5 +156,6 @@ def __plugin_load__():
 
     global __plugin_hooks__
     __plugin_hooks__ = {
-        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+        "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.sent_gcode
     }
