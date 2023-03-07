@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_celestrius/templates *
+recursive-include octoprint_celestrius/translations *
+recursive-include octoprint_celestrius/static *

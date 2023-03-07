@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  op:
+    hostname: octoprint
+    restart: unless-stopped
+    build:
+        context: .
+        dockerfile: Dockerfile
+    ports:
+      - "${OP_PYTHON3_PORT-6003}:5000"
+    volumes:
+     - ./:/app
+    environment:
+        DEBUG: 'True'
+    command: bash -c "sleep 11111111111"
