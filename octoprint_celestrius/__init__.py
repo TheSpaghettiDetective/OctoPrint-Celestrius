@@ -1,5 +1,10 @@
 # coding=utf-8
 from __future__ import absolute_import
+import threading
+from datetime import datetime
+import os
+import requests
+import time
 
 ### (Don't forget to remove me)
 # This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
@@ -13,6 +18,7 @@ import octoprint.plugin
 
 class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
+    octoprint.plugin.StartupPlugin,
     octoprint.plugin.TemplatePlugin,
     octoprint.plugin.WizardPlugin
 ):
@@ -67,6 +73,48 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             }
         }
 
+
+    def on_after_startup(self):
+
+        main_thread = threading.Thread(target=self.main_loop)
+        main_thread.daemon = True
+        main_thread.start()
+
+    # Private methods
+
+    def main_loop(self):
+        last_collect = 0.0
+        data_dirname = None
+        while True:
+            if self._printer.get_state_id() in ['PRINTING','PAUSED', 'PAUSING', 'RESUMING', ]:
+                if data_dirname == None:
+                    filename = self._printer.get_current_job().get('file', {}).get('name')
+                    if not filename:
+                        continue
+
+                    print_id = str(int(datetime.now().timestamp()))
+                    data_dirname = os.path.join(os.path.expanduser('~'), f'{filename}.{print_id}')
+                    os.mkdir(data_dirname)
+
+                ts = datetime.now().timestamp()
+                if ts - last_collect >= 1.0:
+                    last_collect = ts
+                    jpg = self.capture_jpeg()
+                    with open(f'{data_dirname}/{ts}.jpg', 'wb') as f:
+                        f.write(jpg)
+            else:
+                data_dirname = None
+                continue
+
+            time.sleep(0.02)
+
+    def capture_jpeg(self):
+        snapshot_url = self._settings.get(["snapshot_url"])
+        if snapshot_url:
+            r = requests.get(snapshot_url, stream=True, timeout=5, verify=False )
+            r.raise_for_status()
+            jpg = r.content
+            return jpg
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
 # ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that

@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   op:
-    hostname: octoprint
+    hostname: celestrius
     restart: unless-stopped
     build:
         context: .
