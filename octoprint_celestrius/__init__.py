@@ -176,6 +176,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         _logger.info('Deleting ' + basename)
         _logger.info('Uploading ' + tarball_filename)
         self.upload_to_data_bucket(tarball_filename)
+        _logger.info('Done')
 
     def upload_to_data_bucket(self, filename):
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'celestrius-data-collector.json')
@@ -184,7 +185,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         bucket = client.bucket('celestrius-data-collection')
         basename = os.path.basename((filename))
         with open(filename, 'rb') as f:
-            blob = bucket.blob(f'asdf@asdf.com/{basename}')
+            blob = bucket.blob(f'{self._settings.get(["pilot_email"])}/{basename}')
             blob.upload_from_file(f)
 
 
