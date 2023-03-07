@@ -108,11 +108,15 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     # Private methods
 
     def main_loop(self):
+        SNAPSHOTS_INTERVAL_SECS = 0.4
+        MAX_SNAPSHOT_NUM_IN_PRINT = int(60.0 / SNAPSHOTS_INTERVAL_SECS * 30)  # limit sampling to 30 minutes
         last_collect = 0.0
         data_dirname = None
+        snapshot_num_in_current_print = 0
+
         while True:
             if self._printer.get_state_id() in ['PRINTING', 'PAUSING', 'RESUMING', ]:
-                if not self.should_collect():
+                if not self.should_collect() or snapshot_num_in_current_print > MAX_SNAPSHOT_NUM_IN_PRINT:
                     continue
 
                 if data_dirname == None:
@@ -125,8 +129,10 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                     os.makedirs(data_dirname, exist_ok=True)
 
                 ts = datetime.now().timestamp()
-                if ts - last_collect >= 0.4:
+                if ts - last_collect >= SNAPSHOTS_INTERVAL_SECS:
                     last_collect = ts
+                    snapshot_num_in_current_print += 1
+
                     jpg = self.capture_jpeg()
                     with open(f'{data_dirname}/{ts}.jpg', 'wb') as f:
                         f.write(jpg)
@@ -142,6 +148,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                     compress_thread = Thread(target=self.compress_and_upload, args=(data_dirname_to_compress,))
                     compress_thread.daemon = True
                     compress_thread.start()
+
+                snapshot_num_in_current_print = 0
                 data_dirname = None
 
             time.sleep(0.02)
