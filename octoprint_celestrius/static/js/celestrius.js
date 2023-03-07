@@ -18,6 +18,22 @@ $(function () {
                 self.settingsViewModel.settings.plugins.celestrius.enabled()
             );
         });
+        self.needConfig = ko.pureComputed(function () {
+            return (
+                !self.settingsViewModel.settings.plugins.celestrius.terms_accepted() ||
+                !self.settingsViewModel.settings.plugins.celestrius.pilot_email()
+            );
+        });
+        self.navbarBtnClassName = ko.pureComputed(function () {
+            var clazz = "pull-right celestrius-toggle";
+            if (self.needConfig()) {
+                clazz += " need_config";
+            }
+            if (self.isEnabled()) {
+                clazz += " enabled";
+            }
+            return clazz;
+        });
 
         // TODO: Implement your plugin's view model here.
         self.toggleIsEnabled = function () {
@@ -27,7 +43,10 @@ $(function () {
             self.settingsViewModel.saveData();
         };
         self.navbarButtonTitle = ko.pureComputed(function () {
-            return self.settingsViewModel.settings.plugins.celestrius.enabled()
+            if (self.needConfig()) {
+                return "Celetrius is NOT configured properly. Please go to the settings page to configure it.";
+            }
+            return self.isEnabled()
                 ? "Celetrius is collecting data. Click to turn OFF."
                 : "Celetrius is NOT collecting data. Click to turn ON.";
         });

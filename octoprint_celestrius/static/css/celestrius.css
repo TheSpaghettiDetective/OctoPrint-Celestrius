@@ -5,3 +5,10 @@
 	background: #4CAE4C !important;
 }
 
+#navbar_plugin_celestrius .celestrius-toggle.need_config {
+	background: #FFA500;
+}
+#navbar_plugin_celestrius .celestrius-toggle.need_config:hover {
+	background: #FFA500 !important;
+}
+
