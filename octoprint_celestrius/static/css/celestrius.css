@@ -1,3 +1,7 @@
-#navbar_plugin_celestrius > a.enabled {
-	color: #0f1095 !important;
+#navbar_plugin_celestrius .celestrius-toggle.enabled {
+	background: #5CB85C;
 }
+#navbar_plugin_celestrius .celestrius-toggle.enabled:hover {
+	background: #4CAE4C !important;
+}
+

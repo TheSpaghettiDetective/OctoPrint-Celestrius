@@ -12,11 +12,15 @@ $(function () {
         self.settingsViewModel = parameters[0];
         self.wizardViewModel = parameters[1];
 
+        self.isEnabled = ko.pureComputed(function() {
+            return self.settingsViewModel.settings.plugins.celestrius.enabled
+                && self.settingsViewModel.settings.plugins.celestrius.enabled();
+        })
+
         // TODO: Implement your plugin's view model here.
         self.toggleIsEnabled = function () {
-            self.settingsViewModel.settings.plugins.celestrius.enabled(
-                !self.settingsViewModel.settings.plugins.celestrius.enabled()
-            );
+            const newVal = !self.settingsViewModel.settings.plugins.celestrius.enabled();
+            self.settingsViewModel.settings.plugins.celestrius.enabled(newVal);
             self.settingsViewModel.saveData();
         };
         self.navbarButtonTitle = ko.pureComputed(function () {
