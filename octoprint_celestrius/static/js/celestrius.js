@@ -28,6 +28,19 @@ $(function () {
                 ? "Celetrius is collecting data. Click to turn OFF."
                 : "Celetrius is NOT collecting data. Click to turn ON.";
         });
+
+        self.termsAccepted = ko.pureComputed(function () {
+            return self.settingsViewModel.settings.plugins.celestrius.terms_accepted();
+        });
+        self.consentText = ko.pureComputed(function () {
+            return self.termsAccepted()
+                ? "You accepted the terms for participating in the pilot program."
+                : "I understand the privacy policy and accept the terms for participating in the pilot program."
+        });
+        self.savePluginSettings = function () {
+            self.settingsViewModel.saveData();
+            return true;
+        }
     }
 
     /* view model class, parameters for constructor, container to bind to
@@ -39,6 +52,6 @@ $(function () {
         // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
         dependencies: ["settingsViewModel", "wizardViewModel"],
         // Elements to bind to, e.g. #settings_plugin_celestrius, #tab_plugin_celestrius, ...
-        elements: ["#settings_plugin_celestrius", "#navbar_plugin_celestrius"],
+        elements: ["#settings_plugin_celestrius", '#wizard_plugin_celestrius', "#navbar_plugin_celestrius"],
     });
 });
