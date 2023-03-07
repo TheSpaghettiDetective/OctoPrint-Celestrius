@@ -177,7 +177,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         shutil.rmtree(data_dirname, ignore_errors=True)
         _logger.info('Uploading ' + tarball_filename)
         self.upload_to_data_bucket(tarball_filename)
-        _logger.info('Done')
+        _logger.info('Deleting ' + tarball_filename)
+        os.remove(tarball_filename)
 
     def upload_to_data_bucket(self, filename):
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'celestrius-data-collector.json')
