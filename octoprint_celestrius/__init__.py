@@ -45,6 +45,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             'snapshot_url': 'http://localhost:8080/?action=snapshot',
             'enabled': False,
             'pilot_email': None,
+            'terms_accepted': False,
         }
 
     ##~~ AssetPlugin mixin
