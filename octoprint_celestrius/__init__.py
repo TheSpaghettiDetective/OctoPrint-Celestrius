@@ -186,7 +186,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         basename = os.path.basename((filename))
         with open(filename, 'rb') as f:
             blob = bucket.blob(f'{self._settings.get(["pilot_email"])}/{basename}')
-            blob.upload_from_file(f)
+            blob.upload_from_file(f, timeout=None)
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
