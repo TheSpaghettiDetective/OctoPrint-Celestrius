@@ -10,6 +10,7 @@ import time
 import re
 import psutil
 import shutil
+
 from google.cloud import storage
 
 
@@ -187,6 +188,11 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         self.upload_to_data_bucket(tarball_filename)
         _logger.info('Deleting ' + tarball_filename)
         os.remove(tarball_filename)
+        uploaded_list_file = os.path.join(self._data_folder, 'uploaded_print_list.csv')
+        with open(uploaded_list_file, 'a') as file:
+            now = datetime.now().strftime('%A, %B %d, %Y')
+            line = f'"{data_dirname}","{now}"\n'
+            file.write(line)
 
     def upload_to_data_bucket(self, filename):
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'celestrius-data-collector.json')
