@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from threading import Thread, RLock
 from datetime import datetime
+import flask
 import os
 import subprocess
 import logging
@@ -10,6 +11,8 @@ import time
 import re
 import psutil
 import shutil
+import json
+import csv
 
 from google.cloud import storage
 
@@ -30,6 +33,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.StartupPlugin,
     octoprint.plugin.TemplatePlugin,
+    octoprint.plugin.SimpleApiPlugin,
     octoprint.plugin.WizardPlugin
 ):
 
@@ -77,6 +81,24 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
     def get_wizard_version(self):
         return 1
+
+    # ~~ plugin APIs
+
+    def get_api_commands(self):
+        return dict(
+            upload_history=[],
+        )
+
+    def on_api_command(self, command, data):
+        _logger.debug('API called: {}'.format(command))
+        if command == "upload_history":
+            uploaded_list_file = os.path.join(self._data_folder, 'uploaded_print_list.csv')
+            with open(uploaded_list_file, 'r') as csvfile:
+                reader = csv.reader(csvfile)
+                rows = list(reader)
+
+            return flask.jsonify(rows)
+
 
     ##~~ Softwareupdate hook
 
@@ -191,7 +213,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         uploaded_list_file = os.path.join(self._data_folder, 'uploaded_print_list.csv')
         with open(uploaded_list_file, 'a') as file:
             now = datetime.now().strftime('%A, %B %d, %Y')
-            line = f'"{data_dirname}","{now}"\n'
+            line = f'"{os.path.basename(data_dirname)}","{now}"\n'
             file.write(line)
 
     def upload_to_data_bucket(self, filename):

@@ -12,6 +12,17 @@ $(function () {
         self.settingsViewModel = parameters[0];
         self.wizardViewModel = parameters[1];
 
+        self.uploadHistory = ko.observableArray([]);
+
+        self.columns = [
+            { headerText: "Column A", rowText: "column_a" },
+            { headerText: "Column B", rowText: "column_b" },
+        ];
+
+        self.onSettingsShown = function (plugin, data) {
+            self.fetchUploadHistory();
+        };
+
         self.isEnabled = ko.pureComputed(function () {
             return (
                 self.settingsViewModel.settings.plugins.celestrius.enabled &&
@@ -44,11 +55,11 @@ $(function () {
         };
         self.navbarButtonTitle = ko.pureComputed(function () {
             if (self.needConfig()) {
-                return "Celetrius is NOT configured properly. Please go to the settings page to configure it.";
+                return "Celestrius is NOT configured properly. Please go to the settings page to configure it.";
             }
             return self.isEnabled()
-                ? "Celetrius is collecting data. Click to turn OFF."
-                : "Celetrius is NOT collecting data. Click to turn ON.";
+                ? "Celestrius is collecting data. Click to turn OFF."
+                : "Celestrius is NOT collecting data. Click to turn ON.";
         });
 
         self.termsAccepted = ko.pureComputed(function () {
@@ -63,8 +74,23 @@ $(function () {
             self.settingsViewModel.saveData();
             return true;
         };
+        self.fetchUploadHistory = function () {
+            apiCommand({
+                command: "upload_history",
+            }).done(function (data) {
+                console.log(data);
+                self.uploadHistory(data);
+            });
+        };
     }
 
+    function apiCommand(data) {
+        return $.ajax("api/plugin/celestrius", {
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+        });
+    }
     /* view model class, parameters for constructor, container to bind to
      * Please see http://docs.octoprint.org/en/master/plugins/viewmodels.html#registering-custom-viewmodels for more details
      * and a full list of the available options.

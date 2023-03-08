@@ -11,7 +11,7 @@
       </ul>
     </li>
     <li>The Obico Team won't access your data until 7 days after they are uploaded. This 7-day period is the grace period for you to request data withdrawal in case you accidentally send the data for the prints you don't intend to.</li>
-    <li>You will find a list of all data that have been sent to the server at the bottom of this page. Please check the list periodically. If you find any data on the list that you don't intend to send to the Obico Team, please <a href="mailto:support@obico.io">email  us</a> to request data withdrawal.</li>
+    <li>You will find a list of all data that have been sent to the server at the bottom of this page. Please check the list periodically. If you find any data on the list that you don't intend to send to the Obico Team, please <a href="mailto:support@obico.io">email  us</a> to request data erasure.</li>
     <li>7 days after your data is uploaded to the server, the Obico Team will access them and use them for project Celestrius.</li>
   </ul>
   <div class="control-group">
@@ -47,4 +47,16 @@
       </div>
     </div>
   </form>
+  <h3>Celestrius Data Collection History</h3>
+  <p>The snapshots collected from the follow prints have been sent to the Celestrius server. They will be accessed by the Obico Team 7 days after the upload. If you have found unintentional uploads, please <a href="mailto:support@obico.io">email  us</a> to request data erasure.</li>
+  <table class="table table-striped">
+    <thead>
+        <tr><th>GCode</th><th>Upload Date</th></tr>
+    </thead>
+    <tbody data-bind="foreach: uploadHistory">
+        <tr data-bind="foreach: $parent.columns">
+            <td data-bind="text: $parent[$index()]"></td>
+        </tr>
+    </tbody>
+</table>
 </div>
