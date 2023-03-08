@@ -41,6 +41,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         self._mutex = RLock()
         self.current_flow_rate = 1.0
         self.current_z_offset = None
+        self.have_seen_m109 = False
+        self.have_seen_gcode_after_m109 = False
 
 
     ##~~ SettingsPlugin mixin
@@ -172,8 +174,11 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                     compress_thread.daemon = True
                     compress_thread.start()
 
+                self.have_seen_m109 = False
+                self.have_seen_gcode_after_m109 = False
                 snapshot_num_in_current_print = 0
                 data_dirname = None
+
 
             time.sleep(0.02)
 
@@ -186,12 +191,20 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             return jpg
 
     def sent_gcode(self, comm_instance, phase, cmd, cmd_type, gcode, subcode=None, tags=None, *args, **kwargs):
+
+        # https://discord.com/channels/704958479194128507/708230829050036236/1082807241691893791
+        if self.have_seen_m109:
+            self.have_seen_gcode_after_m109 = True
+
         if gcode == 'M221':
             match = re.search(r's(\d+)', cmd, re.IGNORECASE)
 
             if match:
                 with self._mutex:
                     self.current_flow_rate = float(match.group(1)) / 100.0
+        elif gcode == 'M109':
+            self.have_seen_m109 = True
+            self.have_seen_gcode_after_m109 = False
 
     def compress_and_upload(self, data_dirname):
         parent_dir_name = os.path.dirname((data_dirname))
@@ -227,7 +240,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             blob.upload_from_file(f, timeout=None)
 
     def should_collect(self):
-        return self._settings.get(["terms_accepted"]) and self._settings.get(["enabled"]) and self._settings.get(["pilot_email"]) is not None
+        return self._settings.get(["terms_accepted"]) and self._settings.get(["enabled"]) and self._settings.get(["pilot_email"]) is not None and self.have_seen_gcode_after_m109
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
