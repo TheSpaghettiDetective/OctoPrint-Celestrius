@@ -37,11 +37,13 @@
               <span class="help-inline">The email you signed up for the limited pilot with. Please make sure the email is correct as this will be used to communicate with you throughout the pilot program.</span>
           </div>
       </div>
-
       <div class="control-group" title="Snapshot URL for the nozzle camera">
           <label class="control-label" for="snapshot-url">Snapshot URL</label>
           <div class="controls">
-              <input type="text" class="input-block-level" data-bind="value: settingsViewModel.settings.plugins.celestrius.snapshot_url" id="snapshot-url">
+              <div class="input-append">
+                  <input type="text" class="input-block-level" data-bind="value: settingsViewModel.settings.plugins.celestrius.snapshot_url" id="snapshot-url">
+                  <button class="btn" type="button" data-bind="click: testWebcamSnapshotUrl, enable: settingsViewModel.settings.plugins.celestrius.snapshot_url() && !testWebcamSnapshotUrlBusy(), css: {disabled: !settingsViewModel.settings.plugins.celestrius.snapshot_url() || testWebcamSnapshotUrlBusy()}"><i class="fas fa-spinner fa-spin" data-bind="visible: testWebcamSnapshotUrlBusy"></i> Test</button>
+              </div>
               <span class="help-inline">The Snapshot URL for <b>the nozzle camera you set up for project Celestrius</b>. Please note if you have multiple cameras set up, this is NOT the main camera you configured in OctoPrint.</span>
           </div>
       </div>
