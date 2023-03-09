@@ -140,45 +140,48 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         snapshot_num_in_current_print = 0
 
         while True:
-            if self._printer.get_state_id() in ['PRINTING', 'PAUSING', 'RESUMING', ]:
-                if not self.should_collect() or snapshot_num_in_current_print > MAX_SNAPSHOT_NUM_IN_PRINT:
-                    continue
-
-                if data_dirname == None:
-                    filename = self._printer.get_current_job().get('file', {}).get('name')
-                    if not filename:
+            try:
+                if self._printer.get_state_id() in ['PRINTING', 'PAUSING', 'RESUMING', ]:
+                    if not self.should_collect() or snapshot_num_in_current_print > MAX_SNAPSHOT_NUM_IN_PRINT:
                         continue
 
-                    print_id = str(int(datetime.now().timestamp()))
-                    data_dirname = os.path.join(self._data_folder, f'{filename}.{print_id}')
-                    os.makedirs(data_dirname, exist_ok=True)
+                    if data_dirname == None:
+                        filename = self._printer.get_current_job().get('file', {}).get('name')
+                        if not filename:
+                            continue
 
-                ts = datetime.now().timestamp()
-                if ts - last_collect >= SNAPSHOTS_INTERVAL_SECS:
-                    last_collect = ts
-                    snapshot_num_in_current_print += 1
+                        print_id = str(int(datetime.now().timestamp()))
+                        data_dirname = os.path.join(self._data_folder, f'{filename}.{print_id}')
+                        os.makedirs(data_dirname, exist_ok=True)
 
-                    jpg = self.capture_jpeg()
-                    with open(f'{data_dirname}/{ts}.jpg', 'wb') as f:
-                        f.write(jpg)
-                    with open(f'{data_dirname}/{ts}.labels', 'w') as f:
-                        with self._mutex:
-                            f.write(f'flow_rate:{self.current_flow_rate}')
+                    ts = datetime.now().timestamp()
+                    if ts - last_collect >= SNAPSHOTS_INTERVAL_SECS:
+                        last_collect = ts
+                        snapshot_num_in_current_print += 1
 
-            elif self._printer.get_state_id() in ['PAUSED']:
-                pass
-            else:
-                if data_dirname is not None:
-                    data_dirname_to_compress = data_dirname
-                    compress_thread = Thread(target=self.compress_and_upload, args=(data_dirname_to_compress,))
-                    compress_thread.daemon = True
-                    compress_thread.start()
+                        jpg = self.capture_jpeg()
+                        with open(f'{data_dirname}/{ts}.jpg', 'wb') as f:
+                            f.write(jpg)
+                        with open(f'{data_dirname}/{ts}.labels', 'w') as f:
+                            with self._mutex:
+                                f.write(f'flow_rate:{self.current_flow_rate}')
 
-                self.have_seen_m109 = False
-                self.have_seen_gcode_after_m109 = False
-                snapshot_num_in_current_print = 0
-                data_dirname = None
+                elif self._printer.get_state_id() in ['PAUSED']:
+                    pass
+                else:
+                    if data_dirname is not None:
+                        data_dirname_to_compress = data_dirname
+                        compress_thread = Thread(target=self.compress_and_upload, args=(data_dirname_to_compress,))
+                        compress_thread.daemon = True
+                        compress_thread.start()
 
+                    self.have_seen_m109 = False
+                    self.have_seen_gcode_after_m109 = False
+                    snapshot_num_in_current_print = 0
+                    data_dirname = None
+
+            except Exception as e:
+                _logger.exception('Exception occurred: %s', e)
 
             time.sleep(0.02)
 
@@ -230,6 +233,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             file.write(line)
 
     def upload_to_data_bucket(self, filename):
+        import http
+        http.client.HTTPConnection.debuglevel=5
+
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'celestrius-data-collector.json')
 
         client = storage.Client()
