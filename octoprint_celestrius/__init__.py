@@ -210,27 +210,31 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             self.have_seen_gcode_after_m109 = False
 
     def compress_and_upload(self, data_dirname):
-        parent_dir_name = os.path.dirname((data_dirname))
-        basename = os.path.basename((data_dirname))
-        tarball_filename = data_dirname + '.tgz'
-        _logger.info('Compressing ' + basename)
-        proc = psutil.Popen(['tar', '-C', parent_dir_name, '-zcf', tarball_filename, basename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        proc.nice(10)
-        returncode = proc.wait()
-        (stdoutdata, stderrdata) = proc.communicate()
-        msg = 'RETURN:\n{}\nSTDOUT:\n{}\nSTDERR:\n{}\n'.format(returncode, stdoutdata, stderrdata)
-        _logger.debug(msg)
-        _logger.info('Deleting ' + basename)
-        shutil.rmtree(data_dirname, ignore_errors=True)
-        _logger.info('Uploading ' + tarball_filename)
-        self.upload_to_data_bucket(tarball_filename)
-        _logger.info('Deleting ' + tarball_filename)
-        os.remove(tarball_filename)
-        uploaded_list_file = os.path.join(self._data_folder, 'uploaded_print_list.csv')
-        with open(uploaded_list_file, 'a') as file:
-            now = datetime.now().strftime('%A, %B %d, %Y')
-            line = f'"{os.path.basename(data_dirname)}","{now}"\n'
-            file.write(line)
+        try:
+            parent_dir_name = os.path.dirname((data_dirname))
+            basename = os.path.basename((data_dirname))
+            tarball_filename = data_dirname + '.tgz'
+            _logger.info('Compressing ' + basename)
+            proc = psutil.Popen(['tar', '-C', parent_dir_name, '-zcf', tarball_filename, basename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc.nice(10)
+            returncode = proc.wait()
+            (stdoutdata, stderrdata) = proc.communicate()
+            msg = 'RETURN:\n{}\nSTDOUT:\n{}\nSTDERR:\n{}\n'.format(returncode, stdoutdata, stderrdata)
+            _logger.debug(msg)
+            _logger.info('Deleting ' + basename)
+            shutil.rmtree(data_dirname, ignore_errors=True)
+            _logger.info('Uploading ' + tarball_filename)
+            self.upload_to_data_bucket(tarball_filename)
+            _logger.info('Deleting ' + tarball_filename)
+            os.remove(tarball_filename)
+            uploaded_list_file = os.path.join(self._data_folder, 'uploaded_print_list.csv')
+            with open(uploaded_list_file, 'a') as file:
+                now = datetime.now().strftime('%A, %B %d, %Y')
+                line = f'"{os.path.basename(data_dirname)}","{now}"\n'
+                file.write(line)
+
+        except Exception as e:
+            _logger.exception('Exception occurred: %s', e)
 
     def upload_to_data_bucket(self, filename):
         import http
