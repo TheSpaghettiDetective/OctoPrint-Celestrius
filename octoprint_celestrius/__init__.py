@@ -49,7 +49,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
     def get_settings_defaults(self):
         return {
-            'snapshot_url': 'http://localhost:8080/?action=snapshot',
+            'snapshot_url': None,
             'enabled': False,
             'pilot_email': None,
             'terms_accepted': False,

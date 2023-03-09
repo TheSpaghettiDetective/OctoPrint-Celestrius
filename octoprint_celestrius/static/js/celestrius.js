@@ -32,7 +32,8 @@ $(function () {
         self.needConfig = ko.pureComputed(function () {
             return (
                 !self.settingsViewModel.settings.plugins.celestrius.terms_accepted() ||
-                !self.settingsViewModel.settings.plugins.celestrius.pilot_email()
+                !self.settingsViewModel.settings.plugins.celestrius.pilot_email() ||
+                !self.settingsViewModel.settings.plugins.celestrius.snapshot_url()
             );
         });
         self.navbarBtnClassName = ko.pureComputed(function () {
