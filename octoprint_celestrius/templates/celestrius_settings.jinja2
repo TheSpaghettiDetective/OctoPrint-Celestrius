@@ -44,7 +44,7 @@
                   <input type="text" class="input-block-level" data-bind="value: settingsViewModel.settings.plugins.celestrius.snapshot_url" id="snapshot-url">
                   <button class="btn" type="button" data-bind="click: testWebcamSnapshotUrl, enable: settingsViewModel.settings.plugins.celestrius.snapshot_url() && !testWebcamSnapshotUrlBusy(), css: {disabled: !settingsViewModel.settings.plugins.celestrius.snapshot_url() || testWebcamSnapshotUrlBusy()}"><i class="fas fa-spinner fa-spin" data-bind="visible: testWebcamSnapshotUrlBusy"></i> Test</button>
               </div>
-              <span class="help-inline">The Snapshot URL for <b>the nozzle camera you set up for project Celestrius</b>. Please note if you have multiple cameras set up, this is NOT the main camera you configured in OctoPrint.</span>
+              <span class="help-inline">The Snapshot URL for <b>the nozzle camera you set up for project Celestrius</b>. Please note if you have multiple cameras set up, this may NOT be the main camera you configured in OctoPrint. Use the "Test" button to make sure this URL works, and the image shows your nozzle camera as intended.</span>
           </div>
       </div>
     </div>
