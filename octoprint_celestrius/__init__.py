@@ -237,10 +237,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             _logger.exception('Exception occurred: %s', e)
 
     def upload_to_data_bucket(self, filename):
-        import http
-        http.client.HTTPConnection.debuglevel=5
-
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'celestrius-data-collector.json')
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scripts', 'celestrius-data-collector.json')
 
         client = storage.Client()
         bucket = client.bucket('celestrius-data-collection')
