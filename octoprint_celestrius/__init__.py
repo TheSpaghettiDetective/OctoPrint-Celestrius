@@ -16,6 +16,7 @@ import csv
 
 from google.cloud import storage
 from .z_offset import ZOffset
+from .gcode_object import GCodeObject
 
 ### (Don't forget to remove me)
 # This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
@@ -46,8 +47,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         self.have_seen_gcode_after_m109 = False
 
         self.z_offset = ZOffset(self)
-
-
+        self.gcode_object = GCodeObject(self)
+        self.z_offset_step = None
 
     ##~~ SettingsPlugin mixin
 
@@ -130,6 +131,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
 
     def on_after_startup(self):
+        self.gcode_object.initialize()
         main_thread = Thread(target=self.main_loop)
         main_thread.daemon = True
         main_thread.start()
@@ -137,6 +139,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     def on_event(self, event, payload):
         if self.z_offset:
             self.z_offset.on_event(event, payload)
+
+        if self.gcode_object:
+            self.gcode_object.on_event(event, payload)
 
     # Private methods
 
@@ -221,7 +226,18 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             self.have_seen_m109 = True
             self.have_seen_gcode_after_m109 = False
 
+    def update_object_list(self, object_list, filename):
+        if filename and len(object_list) > 1:
+            filename_lower = filename.lower()
+            if "celestrius" in filename_lower and "offset" in filename_lower:
+                _logger.warn(f'Found {len(object_list)} objects. Activating z-offset testing')
+                self.z_offset_step = int(10/len(object_list)) * 0.02
 
+    def next_object(self):
+        if self.should_collect() and self.z_offset and self.z_offset.z_offset:
+            new_z_offset = self.z_offset.z_offset + self.z_offset_step
+            _logger.warn(f'Increasing Z-offset to {new_z_offset}...')
+            self._printer.commands([f'M851 Z{new_z_offset}'])
 
     def compress_and_upload(self, data_dirname):
         try:
@@ -284,4 +300,7 @@ def __plugin_load__():
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
         "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.sent_gcode,
         "octoprint.comm.protocol.gcode.received": __plugin_implementation__.z_offset.received_gcode,
+        "octoprint.filemanager.preprocessor": __plugin_implementation__.gcode_object.modify_file,
+        "octoprint.comm.protocol.atcommand.queuing": (__plugin_implementation__.gcode_object.check_atcommand, 1),
+        "octoprint.comm.protocol.gcode.queuing": (__plugin_implementation__.gcode_object.check_queue, 2),
     }
