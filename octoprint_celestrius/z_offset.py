@@ -1,5 +1,6 @@
 from threading import Thread, RLock
 import logging
+from octoprint.events import Events  # pylint: disable=import-error
 
 _logger = logging.getLogger('octoprint.plugins.celestrius')
 
@@ -10,6 +11,18 @@ class ZOffset():
 
     self._mutex = RLock()
     self.prusa_zoffset_following = False
+    self.z_offset = None
+    self.prusa_firmware = False
+
+  def on_event(self, event, payload):
+      if event == 'Connected':
+          self.plugin._printer.commands(['M851'])
+      elif event == Events.FIRMWARE_DATA:
+          _logger.debug('Get firmware data: %s - %s',
+                              payload.get('name'), payload.get('data'))
+          firmware_name = payload.get('name')
+          if firmware_name:
+              self.prusa_firmware = 'prusa' in firmware_name.lower()
 
   def received_gcode(self, comm, line, *args, **kwargs):
       if not line:

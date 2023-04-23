@@ -34,7 +34,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.StartupPlugin,
     octoprint.plugin.TemplatePlugin,
     octoprint.plugin.SimpleApiPlugin,
-    octoprint.plugin.WizardPlugin
+    octoprint.plugin.WizardPlugin,
+    octoprint.plugin.EventHandlerPlugin,
 ):
 
     def __init__(self):
@@ -133,6 +134,10 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         main_thread.daemon = True
         main_thread.start()
 
+    def on_event(self, event, payload):
+        if self.z_offset:
+            self.z_offset.on_event(event, payload)
+
     # Private methods
 
     def main_loop(self):
@@ -170,6 +175,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         with open(f'{data_dirname}/{ts}.labels', 'w') as f:
                             with self._mutex:
                                 f.write(f'flow_rate:{self.current_flow_rate}')
+                                f.write(f'z_offset:{self.current_z_offset}\n')
 
                 elif self._printer.get_state_id() in ['PAUSED']:
                     pass
