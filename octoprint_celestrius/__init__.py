@@ -174,8 +174,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                             f.write(jpg)
                         with open(f'{data_dirname}/{ts}.labels', 'w') as f:
                             with self._mutex:
-                                f.write(f'flow_rate:{self.current_flow_rate}')
-                                f.write(f'z_offset:{self.current_z_offset}\n')
+                                f.write(f'flow_rate:{self.current_flow_rate}\n')
+                                if self.z_offset and self.z_offset.z_offset:
+                                    f.write(f'z_offset:{self.z_offset.z_offset}\n')
 
                 elif self._printer.get_state_id() in ['PAUSED']:
                     pass
