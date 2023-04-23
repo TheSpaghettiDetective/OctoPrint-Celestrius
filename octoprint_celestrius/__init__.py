@@ -15,7 +15,7 @@ import json
 import csv
 
 from google.cloud import storage
-
+from .z_offset import ZOffset
 
 ### (Don't forget to remove me)
 # This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
@@ -43,6 +43,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         self.current_z_offset = None
         self.have_seen_m109 = False
         self.have_seen_gcode_after_m109 = False
+
+        self.z_offset = ZOffset(self)
+
 
 
     ##~~ SettingsPlugin mixin
@@ -154,6 +157,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         data_dirname = os.path.join(self._data_folder, f'{filename}.{print_id}')
                         os.makedirs(data_dirname, exist_ok=True)
 
+                        self._printer.commands(['M851'])
+
                     ts = datetime.now().timestamp()
                     if ts - last_collect >= SNAPSHOTS_INTERVAL_SECS:
                         last_collect = ts
@@ -208,6 +213,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         elif gcode == 'M109':
             self.have_seen_m109 = True
             self.have_seen_gcode_after_m109 = False
+
+
 
     def compress_and_upload(self, data_dirname):
         try:
@@ -268,5 +275,6 @@ def __plugin_load__():
     global __plugin_hooks__
     __plugin_hooks__ = {
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
-        "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.sent_gcode
+        "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.sent_gcode,
+        "octoprint.comm.protocol.gcode.received": __plugin_implementation__.z_offset.received_gcode,
     }
