@@ -249,11 +249,10 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             self.num_gcode_objects_seen += 1
 
             new_z_offset = None
-            import pdb; pdb.set_trace()
-            if self.init_z_offset and self.z_offset_step:
+            if self.init_z_offset is not None and self.z_offset_step is not None:
                 new_z_offset = round(self.init_z_offset + self.z_offset_step * self.num_gcode_objects_seen, 3)
 
-            if self.should_collect() and new_z_offset and self.official_z:
+            if self.should_collect() and new_z_offset is not None and self.official_z is not None:
                 self.current_z_offset = new_z_offset
                 new_z = self.official_z + new_z_offset
                 _logger.warn(f'Increasing Z-offset by moving z from {self.official_z} to {new_z}...')
