@@ -255,7 +255,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             filename_lower = filename.lower()
             if "celestrius" in filename_lower and "offset" in filename_lower:
                 _logger.warn(f'Found {len(object_list)} objects. Activating z-offset testing')
-                self.z_offset_step = int(20/(len(object_list)-1)) * 0.01
+                self.z_offset_step = int(24/(len(object_list)-1)) * 0.01
 
     def next_object(self):
         with self._mutex:
