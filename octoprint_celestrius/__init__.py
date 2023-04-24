@@ -15,7 +15,6 @@ import json
 import csv
 
 from google.cloud import storage
-from .z_offset import ZOffset
 from .gcode_object import GCodeObject
 
 ### (Don't forget to remove me)
@@ -30,6 +29,7 @@ import octoprint.plugin
 
 _logger = logging.getLogger('octoprint.plugins.celestrius')
 
+_z_move_re = re.compile('^(G0|G1)\s+.*Z(-?\d+(\.\d+)?)',  re.IGNORECASE)
 class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.StartupPlugin,
@@ -45,11 +45,11 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         self.have_seen_m109 = False
         self.have_seen_gcode_after_m109 = False
 
-        self.z_offset = ZOffset(self)
         self.gcode_object = GCodeObject(self)
         self.init_z_offset = None
         self.current_z_offset = None
         self.z_offset_step = None
+        self.official_z = None
         self.num_gcode_objects_seen = 0
 
     ##~~ SettingsPlugin mixin
@@ -139,9 +139,6 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         main_thread.start()
 
     def on_event(self, event, payload):
-        if self.z_offset:
-            self.z_offset.on_event(event, payload)
-
         if self.gcode_object:
             self.gcode_object.on_event(event, payload)
 
@@ -169,10 +166,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         data_dirname = os.path.join(self._data_folder, f'{filename}.{print_id}')
                         os.makedirs(data_dirname, exist_ok=True)
 
-                        # Capture z offset at the beginning of a print
                         with self._mutex:
-                            self.init_z_offset = None
-                        self._printer.commands(['M851'])
+                            self.init_z_offset = 0
+                            self.current_z_offset = 0
 
                     ts = datetime.now().timestamp()
                     if ts - last_collect >= SNAPSHOTS_INTERVAL_SECS:
@@ -185,8 +181,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         with open(f'{data_dirname}/{ts}.labels', 'w') as f:
                             with self._mutex:
                                 f.write(f'flow_rate:{self.current_flow_rate}\n')
-                                if self.current_z_offset:
-                                    f.write(f'z_offset:{self.current_z_offset}\n')
+                                f.write(f'z_offset:{self.current_z_offset}\n')
 
                 elif self._printer.get_state_id() in ['PAUSED']:
                     pass
@@ -196,11 +191,6 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         compress_thread = Thread(target=self.compress_and_upload, args=(data_dirname_to_compress,))
                         compress_thread.daemon = True
                         compress_thread.start()
-
-                        if self.init_z_offset:
-                            _logger.warn(f'Resetting Z-offset to {self.init_z_offset}...')
-                            self._printer.commands([f'M851 Z{self.init_z_offset}'])
-
 
                     snapshot_num_in_current_print = 0
                     data_dirname = None
@@ -242,13 +232,10 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             self.have_seen_m109 = True
             self.have_seen_gcode_after_m109 = False
 
-        self.z_offset.on_printer_gcode_sent(comm_instance, phase, cmd, cmd_type, gcode, subcode, tags)
-
-    def set_z_offset(self, z_offset):
-        with self._mutex:
-            self.current_z_offset = z_offset
-            if self.init_z_offset is None:
-                self.init_z_offset = z_offset
+        match = _z_move_re.match(cmd)
+        if match:
+            with self._mutex:
+                self.official_z =  float(match.group(2))
 
     def update_object_list(self, object_list, filename):
         if filename and len(object_list) > 1:
@@ -262,12 +249,15 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             self.num_gcode_objects_seen += 1
 
             new_z_offset = None
+            import pdb; pdb.set_trace()
             if self.init_z_offset and self.z_offset_step:
                 new_z_offset = round(self.init_z_offset + self.z_offset_step * self.num_gcode_objects_seen, 3)
 
-        if self.should_collect() and new_z_offset:
-            _logger.warn(f'Increasing Z-offset to {new_z_offset}...')
-            self._printer.commands([f'M851 Z{new_z_offset}'])
+            if self.should_collect() and new_z_offset and self.official_z:
+                self.current_z_offset = new_z_offset
+                new_z = self.official_z + new_z_offset
+                _logger.warn(f'Increasing Z-offset by moving z from {self.official_z} to {new_z}...')
+                self._printer.commands([f'G1 Z{round(new_z,3)}'])
 
     def compress_and_upload(self, data_dirname):
         try:
@@ -307,7 +297,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             blob.upload_from_file(f, timeout=None)
 
     def should_collect(self):
-        return self._settings.get(["terms_accepted"]) and self._settings.get(["enabled"]) and self._settings.get(["pilot_email"]) is not None and self.have_seen_gcode_after_m109
+        return self._settings.get(["terms_accepted"]) and self._settings.get(["enabled"]) and \
+            self._settings.get(["pilot_email"]) is not None and self.have_seen_gcode_after_m109 \
+            and self.official_z and self.official_z < 0.4
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
@@ -329,7 +321,6 @@ def __plugin_load__():
     __plugin_hooks__ = {
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
         "octoprint.comm.protocol.gcode.sent": __plugin_implementation__.sent_gcode,
-        "octoprint.comm.protocol.gcode.received": __plugin_implementation__.z_offset.received_gcode,
         "octoprint.filemanager.preprocessor": __plugin_implementation__.gcode_object.modify_file,
         "octoprint.comm.protocol.atcommand.queuing": (__plugin_implementation__.gcode_object.check_atcommand, 1),
         "octoprint.comm.protocol.gcode.queuing": (__plugin_implementation__.gcode_object.check_queue, 2),
