@@ -42,13 +42,15 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     def __init__(self):
         self._mutex = RLock()
         self.current_flow_rate = 1.0
-        self.current_z_offset = None
         self.have_seen_m109 = False
         self.have_seen_gcode_after_m109 = False
 
         self.z_offset = ZOffset(self)
         self.gcode_object = GCodeObject(self)
+        self.init_z_offset = None
+        self.current_z_offset = None
         self.z_offset_step = None
+        self.num_gcode_objects_seen = 0
 
     ##~~ SettingsPlugin mixin
 
@@ -167,6 +169,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         data_dirname = os.path.join(self._data_folder, f'{filename}.{print_id}')
                         os.makedirs(data_dirname, exist_ok=True)
 
+                        # Capture z offset at the beginning of a print
+                        with self._mutex:
+                            self.init_z_offset = None
                         self._printer.commands(['M851'])
 
                     ts = datetime.now().timestamp()
@@ -180,8 +185,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         with open(f'{data_dirname}/{ts}.labels', 'w') as f:
                             with self._mutex:
                                 f.write(f'flow_rate:{self.current_flow_rate}\n')
-                                if self.z_offset and self.z_offset.z_offset:
-                                    f.write(f'z_offset:{self.z_offset.z_offset}\n')
+                                if self.current_z_offset:
+                                    f.write(f'z_offset:{self.current_z_offset}\n')
 
                 elif self._printer.get_state_id() in ['PAUSED']:
                     pass
@@ -192,10 +197,21 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         compress_thread.daemon = True
                         compress_thread.start()
 
-                    self.have_seen_m109 = False
-                    self.have_seen_gcode_after_m109 = False
+                        if self.init_z_offset:
+                            _logger.warn(f'Reseting Z-offset to {self.init_z_offset}...')
+                            self._printer.commands([f'M851 Z{self.init_z_offset}'])
+
+
                     snapshot_num_in_current_print = 0
                     data_dirname = None
+
+                    with self._mutex:
+                        self.have_seen_m109 = False
+                        self.have_seen_gcode_after_m109 = False
+                        self.init_z_offset = None
+                        self.current_z_offset = None
+                        self.z_offset_step = None
+                        self.num_gcode_objects_seen = 0
 
             except Exception as e:
                 _logger.exception('Exception occurred: %s', e)
@@ -228,17 +244,29 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
         self.z_offset.on_printer_gcode_sent(comm_instance, phase, cmd, cmd_type, gcode, subcode, tags)
 
+    def set_z_offset(self, z_offset):
+        with self._mutex:
+            self.current_z_offset = z_offset
+            if self.init_z_offset is None:
+                self.init_z_offset = z_offset
+
     def update_object_list(self, object_list, filename):
         if filename and len(object_list) > 1:
             filename_lower = filename.lower()
             if "celestrius" in filename_lower and "offset" in filename_lower:
                 _logger.warn(f'Found {len(object_list)} objects. Activating z-offset testing')
-                self.z_offset_step = int(10/len(object_list)) * 0.02
+                self.z_offset_step = int(20/(len(object_list)-1)) * 0.01
 
     def next_object(self):
-        if self.should_collect() and self.z_offset and self.z_offset.z_offset:
-            new_z_offset = self.z_offset.z_offset + self.z_offset_step
-            _logger.warn(f'Increasing Z-offset from {self.z_offset.z_offset} to {new_z_offset}...')
+        with self._mutex:
+            self.num_gcode_objects_seen += 1
+
+            new_z_offset = None
+            if self.init_z_offset and self.z_offset_step:
+                new_z_offset = round(self.init_z_offset + self.z_offset_step * self.num_gcode_objects_seen, 3)
+
+        if self.should_collect() and new_z_offset:
+            _logger.warn(f'Increasing Z-offset to {new_z_offset}...')
             self._printer.commands([f'M851 Z{new_z_offset}'])
 
     def compress_and_upload(self, data_dirname):

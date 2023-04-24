@@ -74,6 +74,8 @@ class ZOffset():
       _logger.info('Z probe offset is now %s', offset)
       self.z_offset = float(offset)
 
+      self.plugin.set_z_offset(self.z_offset)
+
   def set_z_offset_from_gcode(self, line):
       offset_map = line.lower().replace('m851', '').split()
       z_part = list(filter(lambda v: v.startswith('z'), offset_map))
