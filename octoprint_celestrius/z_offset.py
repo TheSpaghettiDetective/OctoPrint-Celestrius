@@ -24,6 +24,12 @@ class ZOffset():
           if firmware_name:
               self.prusa_firmware = 'prusa' in firmware_name.lower()
 
+  def on_printer_gcode_sent(self, comm, phase, cmd, cmd_type, gcode, *args, **kwargs):
+        # pylint: disable=too-many-arguments, unused-argument
+        if gcode and 'm851' in gcode.lower() and cmd.replace(gcode, ''):
+            _logger.debug('Setting z offset from user command %s', cmd)
+            self.set_z_offset_from_gcode(cmd.replace(gcode, ''))
+
   def received_gcode(self, comm, line, *args, **kwargs):
       if not line:
           return line

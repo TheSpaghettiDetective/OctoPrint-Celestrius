@@ -226,6 +226,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             self.have_seen_m109 = True
             self.have_seen_gcode_after_m109 = False
 
+        self.z_offset.on_printer_gcode_sent(comm_instance, phase, cmd, cmd_type, gcode, subcode, tags)
+
     def update_object_list(self, object_list, filename):
         if filename and len(object_list) > 1:
             filename_lower = filename.lower()
@@ -236,7 +238,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     def next_object(self):
         if self.should_collect() and self.z_offset and self.z_offset.z_offset:
             new_z_offset = self.z_offset.z_offset + self.z_offset_step
-            _logger.warn(f'Increasing Z-offset to {new_z_offset}...')
+            _logger.warn(f'Increasing Z-offset from {self.z_offset.z_offset} to {new_z_offset}...')
             self._printer.commands([f'M851 Z{new_z_offset}'])
 
     def compress_and_upload(self, data_dirname):
