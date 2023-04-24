@@ -198,7 +198,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         compress_thread.start()
 
                         if self.init_z_offset:
-                            _logger.warn(f'Reseting Z-offset to {self.init_z_offset}...')
+                            _logger.warn(f'Resetting Z-offset to {self.init_z_offset}...')
                             self._printer.commands([f'M851 Z{self.init_z_offset}'])
 
 
@@ -255,7 +255,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             filename_lower = filename.lower()
             if "celestrius" in filename_lower and "offset" in filename_lower:
                 _logger.warn(f'Found {len(object_list)} objects. Activating z-offset testing')
-                self.z_offset_step = int(24/(len(object_list)-1)) * 0.01
+                self.z_offset_step = 0.08
 
     def next_object(self):
         with self._mutex:
