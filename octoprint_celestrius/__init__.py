@@ -229,11 +229,9 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
         match = _z_move_re.match(cmd)
         if match:
-            print(cmd, tags)
             if not 'plugin:celestrius' in tags:
                 with self._mutex:
                     self.official_z =  float(match.group(2))
-                    print(f'setting offcial z: {self.official_z}')
                     self.move_z_offset()
 
     def update_object_list(self, object_list, filename):
