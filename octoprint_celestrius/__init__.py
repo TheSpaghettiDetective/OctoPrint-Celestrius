@@ -46,7 +46,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         self.have_seen_gcode_after_m109 = False
 
         self.gcode_object = GCodeObject(self)
-        self.current_z_offset = None
+        self.current_z_offset = 0
         self.z_offset_step = None
         self.official_z = None
         self.num_gcode_objects_seen = 0
@@ -165,6 +165,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         data_dirname = os.path.join(self._data_folder, f'{filename}.{print_id}')
                         os.makedirs(data_dirname, exist_ok=True)
 
+                        self.current_z_offset = 0
+
                     ts = datetime.now().timestamp()
                     if ts - last_collect >= SNAPSHOTS_INTERVAL_SECS:
                         last_collect = ts
@@ -176,8 +178,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         with open(f'{data_dirname}/{ts}.labels', 'w') as f:
                             with self._mutex:
                                 f.write(f'flow_rate:{self.current_flow_rate}\n')
-                                if self.current_z_offset:
-                                    f.write(f'z_offset:{self.current_z_offset}\n')
+                                f.write(f'z_offset:{self.current_z_offset}\n')
 
                 elif self._printer.get_state_id() in ['PAUSED']:
                     pass
@@ -194,7 +195,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                     with self._mutex:
                         self.have_seen_m109 = False
                         self.have_seen_gcode_after_m109 = False
-                        self.current_z_offset = None
+                        self.current_z_offset = 0
                         self.z_offset_step = None
                         self.num_gcode_objects_seen = 0
 
@@ -250,7 +251,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                 self.move_z_offset()
 
     def move_z_offset(self):
-        if self.current_z_offset is None or self.official_z is None:
+        if self.current_z_offset == 0 or self.official_z is None:
             return
         new_z = self.official_z + self.current_z_offset
         _logger.warn(f'Increasing Z-offset by moving z from {self.official_z} to {new_z}...')
