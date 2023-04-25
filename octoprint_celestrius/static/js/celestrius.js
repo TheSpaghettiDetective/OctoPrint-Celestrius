@@ -74,7 +74,6 @@ $(function () {
             apiCommand({
                 command: "upload_history",
             }).done(function (data) {
-                console.log(data);
                 self.uploadHistory(data);
             });
         };
