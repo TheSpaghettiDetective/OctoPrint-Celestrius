@@ -29,7 +29,7 @@ import octoprint.plugin
 
 _logger = logging.getLogger('octoprint.plugins.celestrius')
 
-_z_move_re = re.compile('^(G0|G1)\s+.*Z(-?\d+(\.\d+)?)',  re.IGNORECASE)
+_z_move_re = re.compile('^(G0|G1)\s*Z(-?\d*\.?\d+)',  re.IGNORECASE)
 class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.StartupPlugin,
@@ -46,7 +46,6 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         self.have_seen_gcode_after_m109 = False
 
         self.gcode_object = GCodeObject(self)
-        self.init_z_offset = None
         self.current_z_offset = None
         self.z_offset_step = None
         self.official_z = None
@@ -166,10 +165,6 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         data_dirname = os.path.join(self._data_folder, f'{filename}.{print_id}')
                         os.makedirs(data_dirname, exist_ok=True)
 
-                        with self._mutex:
-                            self.init_z_offset = 0
-                            self.current_z_offset = 0
-
                     ts = datetime.now().timestamp()
                     if ts - last_collect >= SNAPSHOTS_INTERVAL_SECS:
                         last_collect = ts
@@ -181,7 +176,8 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         with open(f'{data_dirname}/{ts}.labels', 'w') as f:
                             with self._mutex:
                                 f.write(f'flow_rate:{self.current_flow_rate}\n')
-                                f.write(f'z_offset:{self.current_z_offset}\n')
+                                if self.current_z_offset:
+                                    f.write(f'z_offset:{self.current_z_offset}\n')
 
                 elif self._printer.get_state_id() in ['PAUSED']:
                     pass
@@ -198,7 +194,6 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                     with self._mutex:
                         self.have_seen_m109 = False
                         self.have_seen_gcode_after_m109 = False
-                        self.init_z_offset = None
                         self.current_z_offset = None
                         self.z_offset_step = None
                         self.num_gcode_objects_seen = 0
@@ -234,8 +229,12 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
         match = _z_move_re.match(cmd)
         if match:
-            with self._mutex:
-                self.official_z =  float(match.group(2))
+            print(cmd, tags)
+            if not 'plugin:celestrius' in tags:
+                with self._mutex:
+                    self.official_z =  float(match.group(2))
+                    print(f'setting offcial z: {self.official_z}')
+                    self.move_z_offset()
 
     def update_object_list(self, object_list, filename):
         if filename and len(object_list) > 1:
@@ -248,15 +247,16 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
         with self._mutex:
             self.num_gcode_objects_seen += 1
 
-            new_z_offset = None
-            if self.init_z_offset is not None and self.z_offset_step is not None:
-                new_z_offset = round(self.init_z_offset + self.z_offset_step * self.num_gcode_objects_seen, 3)
+            if self.z_offset_step is not None and self.should_collect() and self.official_z is not None:
+                self.current_z_offset = round(self.z_offset_step * self.num_gcode_objects_seen, 3)
+                self.move_z_offset()
 
-            if self.should_collect() and new_z_offset is not None and self.official_z is not None:
-                self.current_z_offset = new_z_offset
-                new_z = self.official_z + new_z_offset
-                _logger.warn(f'Increasing Z-offset by moving z from {self.official_z} to {new_z}...')
-                self._printer.commands([f'G1 Z{round(new_z,3)}'])
+    def move_z_offset(self):
+        if self.current_z_offset is None or self.official_z is None:
+            return
+        new_z = self.official_z + self.current_z_offset
+        _logger.warn(f'Increasing Z-offset by moving z from {self.official_z} to {new_z}...')
+        self._printer.commands([f'G1 Z{round(new_z,3)}'])
 
     def compress_and_upload(self, data_dirname):
         try:
@@ -298,7 +298,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
     def should_collect(self):
         return self._settings.get(["terms_accepted"]) and self._settings.get(["enabled"]) and \
             self._settings.get(["pilot_email"]) is not None and self.have_seen_gcode_after_m109 \
-            and self.official_z and self.official_z < 0.4
+            and self.official_z and self.official_z < 0.5
 
 
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
