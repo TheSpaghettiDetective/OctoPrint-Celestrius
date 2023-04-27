@@ -249,13 +249,14 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
             if self.z_offset_stepping_activated and self.should_collect() and self.official_z is not None:
                 self.current_z_offset = round(self._settings.get(["z_offset_increment"]) * self.num_gcode_objects_seen, 3)
+                _logger.warn(f'New Z-offset: {self.current_z_offset}...')
                 self.move_z_offset()
 
     def move_z_offset(self):
         if self.current_z_offset == 0 or self.official_z is None:
             return
         new_z = self.official_z + self.current_z_offset
-        _logger.warn(f'Increasing Z-offset by moving z from {self.official_z} to {new_z}...')
+        _logger.warn(f'Moving z from {self.official_z} to {new_z}...')
         self._printer.commands([f'G1 Z{round(new_z,3)}'])
 
     def compress_and_upload(self, data_dirname):
