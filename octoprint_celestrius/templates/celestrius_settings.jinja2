@@ -47,6 +47,13 @@
               <span class="help-inline">The Snapshot URL for <b>the nozzle camera you set up for project Celestrius</b>. Please note if you have multiple cameras set up, this may NOT be the main camera you configured in OctoPrint. Use the "Test" button to make sure this URL works, and the image shows your nozzle camera as intended.</span>
           </div>
       </div>
+      <div class="control-group" title="Z-offset increment">
+          <label class="control-label" for="pilot-email">Z-offset increment</label>
+          <div class="controls">
+              <input type="number" min="0" step="0.02" class="input-mini text-right" data-bind="value: settingsViewModel.settings.plugins.celestrius.z_offset_increment" id="z_offset_increment">
+              <span class="help-inline">The amount of z-offset will increase when the print progresses from one block to the next. This is only for z-offset tests and activated only when the G-Code file name matche the pattern "<i>XXX-Celestrius-Z-Offset-XXX</i>".</span>
+          </div>
+      </div>
     </div>
   </form>
   <h3>Celestrius Data Collection History</h3>

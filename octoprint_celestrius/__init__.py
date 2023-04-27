@@ -47,7 +47,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
 
         self.gcode_object = GCodeObject(self)
         self.current_z_offset = 0
-        self.z_offset_step = None
+        self.z_offset_stepping_activated = False
         self.official_z = None
         self.num_gcode_objects_seen = 0
 
@@ -59,6 +59,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             'enabled': False,
             'pilot_email': None,
             'terms_accepted': False,
+            'z_offset_increment': 0.1,
         }
 
     ##~~ AssetPlugin mixin
@@ -196,7 +197,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
                         self.have_seen_m109 = False
                         self.have_seen_gcode_after_m109 = False
                         self.current_z_offset = 0
-                        self.z_offset_step = None
+                        self.z_offset_stepping_activated = False
                         self.num_gcode_objects_seen = 0
 
             except Exception as e:
@@ -240,14 +241,14 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             filename_lower = filename.lower()
             if "celestrius" in filename_lower and "offset" in filename_lower:
                 _logger.warn(f'Found {len(object_list)} objects. Activating z-offset testing')
-                self.z_offset_step = 0.08
+                self.z_offset_stepping_activated = True
 
     def next_object(self):
         with self._mutex:
             self.num_gcode_objects_seen += 1
 
-            if self.z_offset_step is not None and self.should_collect() and self.official_z is not None:
-                self.current_z_offset = round(self.z_offset_step * self.num_gcode_objects_seen, 3)
+            if self.z_offset_stepping_activated and self.should_collect() and self.official_z is not None:
+                self.current_z_offset = round(self._settings.get(["z_offset_increment"]) * self.num_gcode_objects_seen, 3)
                 self.move_z_offset()
 
     def move_z_offset(self):
