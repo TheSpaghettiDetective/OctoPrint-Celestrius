@@ -59,7 +59,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             'enabled': False,
             'pilot_email': None,
             'terms_accepted': False,
-            'z_offset_increment': 0.1,
+            'z_offset_increment': "0.1",
         }
 
     ##~~ AssetPlugin mixin
@@ -248,7 +248,7 @@ class CelestriusPlugin(octoprint.plugin.SettingsPlugin,
             self.num_gcode_objects_seen += 1
 
             if self.z_offset_stepping_activated and self.should_collect() and self.official_z is not None:
-                self.current_z_offset = round(self._settings.get(["z_offset_increment"]) * self.num_gcode_objects_seen, 3)
+                self.current_z_offset = round(float(self._settings.get(["z_offset_increment"])) * self.num_gcode_objects_seen, 3)
                 _logger.warn(f'New Z-offset: {self.current_z_offset}...')
                 self.move_z_offset()
 
